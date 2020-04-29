@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -347,15 +348,28 @@ func ApplyEtcd(cfg *config.CloudConfig) error {
 		// Etcd Configuration is missing, ensure that the service is stopped and run level
 		// scripts are removed
 
-		// Stop the etcd service
-		cmd := exec.Command("/etc/init.d/etcd-service", "stop")
+		// Get the etcd-service status if it is running
+		cmd := exec.Command("/etc/init.d/etcd-service", "status")
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
+		var out bytes.Buffer
+		cmd.Stdout = &out
 		cmd.Stdin = os.Stdin
 		cmd.Run()
 
+		started, _ := regexp.Match(`started`, out.Bytes())
+
+		if started {
+			// Stop the etcd service
+			cmd = exec.Command("/etc/init.d/etcd-service", "stop")
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+			cmd.Stdin = os.Stdin
+			cmd.Run()
+		}
+
 		// Remove the etcd service from the run level
-		cmd = exec.Command("/usr/sbin/rc-update", "del", "etcd-service")
+		cmd = exec.Command("/usr/sbin/rc-update", "-qq", "del", "etcd-service")
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 		cmd.Stdin = os.Stdin

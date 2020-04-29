@@ -21,7 +21,7 @@ type K3OS struct {
 	Environment    map[string]string `json:"environment,omitempty"`
 	Taints         []string          `json:"taints,omitempty"`
 	Install        *Install          `json:"install,omitempty"`
-	Etcd           *Etcd             `json:"etcd,omitempty"`
+	Etcd           Etcd              `json:"etcd,omitempty"`
 }
 
 type Wifi struct {
